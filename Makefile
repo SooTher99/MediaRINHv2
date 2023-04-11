@@ -19,5 +19,12 @@ stop:
 	docker compose -f docker-compose.yml down
 ps-docker: ## docker ps в нормальном виде
 	docker ps --format "table {{.ID}}\t{{.Status}}\t{{.Names}}\t{{.Ports}}"
+##############################################################################################
 add: ## Добавление зависимостей, lib обязательный аргумент
-	docker compose exec web /opt/poetry/bin/poetry add ${lib} --lock
+	docker compose exec web /opt/poetry/bin/poetry add ${lib}
+migrate:
+	docker compose exec web alembic upgrade head
+makemigrations:
+	docker compose exec web alembic revision --message=${msg} --autogenerate
+downgrade:
+	docker compose exec web alembic downgrade ${flag}

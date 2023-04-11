@@ -1,7 +1,9 @@
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 from pydantic import AnyHttpUrl, BaseSettings, EmailStr, PostgresDsn, validator
-
+import os
+from sqlalchemy_file.storage import StorageManager
+from libcloud.storage.drivers.local import LocalStorageDriver
 
 class Settings(BaseSettings):
     """
@@ -108,6 +110,19 @@ class Settings(BaseSettings):
             and values.get("SMTP_PORT")
             and values.get("EMAILS_FROM_EMAIL")
         )
+    #######################################################################################
+    """MEDIA SETTINGS"""
+
+    MEDIA_DIR: Path = 'media'
+
+    os.makedirs(BASE_DIR.joinpath(MEDIA_DIR), 0o777, exist_ok=True)
+    container = LocalStorageDriver(BASE_DIR).get_container(MEDIA_DIR)
+    StorageManager.add_storage("default", container)
+
+    @validator("MEDIA_DIR", pre=True)
+    def get_media_dir(cls, v: Optional[Path], values: Dict[str, Any]):
+        return values.get("BASE_DIR").joinpath(v)
+
 
     class Config:
         case_sensitive = True
