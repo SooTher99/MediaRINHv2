@@ -13,7 +13,7 @@ from conf.database import Base
 import sys
 import os
 
-from src.account.models import *
+from src.account.models import UserModel
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

@@ -1,3 +1,4 @@
+import hashlib
 from typing import Optional, AnyStr
 
 from sqlalchemy import String
@@ -25,7 +26,7 @@ class UserModel(Base):
     first_name : Mapped[str] = mapped_column(String(64))
     last_name : Mapped[Optional[str]] = mapped_column(String(64))
     email : Mapped[str] = mapped_column(EmailType, unique=True, index=True)
-    password : Mapped[str] = mapped_column(String(128))
+    password : Mapped[str] = mapped_column(String(256))
 
     date_joined : Mapped[datetime] = mapped_column(default=datetime.utcnow)
     last_login : Mapped[Optional[datetime]]
@@ -43,6 +44,12 @@ class UserModel(Base):
         if len(password) < 8:
             raise ValueError('Password too short, minimum number of characters 8')
         return password
+
+    async def set_password(self, raw_password):
+        self.password: str = hashlib.sha256((raw_password + settings.SECRET_KEY).encode('utf-8')).hexdigest()
+
+    async def check_password(self, raw_password):
+        return hashlib.sha256((raw_password + settings.SECRET_KEY).encode('utf-8')).hexdigest() == self.password
 
 def convert_to_webp(source):
     """Convert image to webp.
@@ -65,14 +72,15 @@ def upload_to(prefix:str):
 
 @event.listens_for(UserModel, 'before_insert')
 def save_avatar(mapper, connect, target):
-    path_avatar = upload_to('avatar')
-    file_name = Path(str(uuid.uuid4())).with_suffix('.webp')
-    absolute_path = settings.MEDIA_DIR.joinpath(path_avatar)
+    if target.avatar is not None:
+        path_avatar = upload_to('avatar')
+        file_name = Path(str(uuid.uuid4())).with_suffix('.webp')
+        absolute_path = settings.MEDIA_DIR.joinpath(path_avatar)
 
-    os.makedirs(absolute_path, 0o777, exist_ok=True)
-    with open (absolute_path.joinpath(file_name), 'wb') as avatar:
-        shutil.copyfileobj(target.avatar, avatar)
-        convert_to_webp(absolute_path.joinpath(file_name))
+        os.makedirs(absolute_path, 0o777, exist_ok=True)
+        with open (absolute_path.joinpath(file_name), 'wb') as avatar:
+            shutil.copyfileobj(target.avatar, avatar)
+            convert_to_webp(absolute_path.joinpath(file_name))
 
-    target.avatar = f'{path_avatar}/{file_name}.webp'
+        target.avatar = f'{path_avatar}/{file_name}.webp'
 
