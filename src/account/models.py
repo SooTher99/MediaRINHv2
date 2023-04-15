@@ -1,5 +1,5 @@
 import hashlib
-from typing import Optional, AnyStr
+from typing import Optional
 
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped
