@@ -13,7 +13,7 @@ from src.account.models import UserModel
 
 from fastapi.security import OAuth2PasswordBearer
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/login")
 
 
 async def get_user(session:AsyncSession, **kwargs) -> UserModel:

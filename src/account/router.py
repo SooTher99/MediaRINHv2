@@ -1,35 +1,19 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
-from conf.database import get_async_session
-from sqlalchemy.ext.asyncio import AsyncSession
 from src.account.models import UserModel
-from src.account.utils import authenticate_user, create_access_token
-from src.account.schemas import Token, UserLogin
-
+from src.account.utils import authenticate_user, create_access_token, get_current_active_user
+from src.account.schemas import Token, UserLogin, UserRegister
 from conf.settings import settings
+from conf.database import get_async_session
 
 router = APIRouter()
 
-@router.post('/test/')
-async def test(session:AsyncSession = Depends(get_async_session), file: UploadFile = File(...)):
-    user_obj = UserModel(first_name="Вася",
-                          email='tolikberdyev1@gmail.com')
-    await user_obj.set_password('qwe123456')
-    session.add(user_obj)
-    await session.commit()
-    await session.close()
-
-    print('*'*40)
-    print(user_obj.email)
-    print('*' * 40)
-
-    return {'field': 'hello'}
-
 @router.post("/login", response_model=Token)
 async def login_for_access_token(
-    form_data: UserLogin, session : Annotated[get_async_session, Depends()]
+    form_data: UserLogin,
+    session : Annotated[get_async_session, Depends()]
 ):
     user = await authenticate_user(session, form_data.email, form_data.password)
     if not user:
@@ -42,3 +26,16 @@ async def login_for_access_token(
         data={"sub": user.id}, expires_min=settings.ACCESS_TOKEN_EXPIRE_MINUTES
     )
     return {"access_token": access_token, "token_type": "Bearer"}
+
+@router.post("/register", response_model=UserRegister)
+async def register_user(
+    form_data: UserRegister,
+    session : Annotated[get_async_session, Depends()]
+):
+    return form_data
+
+@router.get("/users/me")
+async def read_users_me(
+    current_user: Annotated[UserModel, Depends(get_current_active_user)]
+):
+    return current_user
