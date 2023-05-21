@@ -1,10 +1,12 @@
 from typing import Annotated
-
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import insert, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.account.models import UserModel
 from src.account.utils import authenticate_user, create_access_token, get_current_active_user
 from src.account.schemas import Token, UserLogin, UserRegister
+from src.responses import RequestValidationError
 from conf.settings import settings
 from conf.database import get_async_session
 
@@ -30,8 +32,22 @@ async def login_for_access_token(
 @router.post("/register", response_model=UserRegister)
 async def register_user(
     form_data: UserRegister,
-    session : Annotated[get_async_session, Depends()]
+    session : AsyncSession = Depends(get_async_session)
 ):
+
+    dict_data = form_data.dict(exclude={'password_repeat'}, exclude_none=True)
+    smtp = select(UserModel.email).filter_by(email=dict_data.get('email')).limit(1)
+    check_user = await session.scalars(smtp)
+    list_errors = []
+    if check_user.first():
+        raise RequestValidationError(loc=['body','email'], typ='хз', msg='Пользователь с данной почтой уже существует')
+        raise RequestValidationError(loc=['body','email'], typ='хз', msg='Пользователь с данной почтой уже существует')
+        raise RequestValidationError(loc=['body','email'], typ='хз', msg='Пользователь с данной почтой уже существует')
+
+    # user = UserModel(**dict_data)
+    # session.add(user)
+    # await session.commit()
+
     return form_data
 
 @router.get("/users/me")
