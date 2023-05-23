@@ -4,15 +4,6 @@ from pydantic import BaseModel, EmailStr, Field, validator, FilePath
 from src.types import constr
 
 
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-
-class TokenData(BaseModel):
-    username: str | None = None
-
-
 class UserRegister(BaseModel):
     email: EmailStr
     first_name: constr(strip_whitespace=True, max_length=64)
@@ -35,17 +26,6 @@ class UserRegister(BaseModel):
                 'last_name': 'Abu_bandit',
                 'password': 'Vikusya007',
                 'password_repeat': 'Vikusya007'
-            }
-        }
-
-
-class UserSuccessCreate(BaseModel):
-    email: str
-
-    class Config:
-        schema_extra = {
-            'example': {
-                'email': 'Вы успешно зарегистрировались, вам отправлено письмо для подтверждения почты.'
             }
         }
 
@@ -74,3 +54,16 @@ class UserPersonArea(BaseModel):
                 'avatar': 'media/avatar/3fdsd1234fsdf123.png',
             }
         }
+
+
+class TokenMessage(BaseModel):
+    access_token: str
+    token_type: str = 'Bearer'
+
+
+class UnauthorizedMessage(BaseModel):
+    detail: str
+
+
+class UserSuccessCreateMessage(BaseModel):
+    email: str = 'Вы успешно зарегистрировались, вам отправлено письмо для подтверждения почты.'

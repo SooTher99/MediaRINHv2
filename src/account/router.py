@@ -5,16 +5,22 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.account.models import UserModel
-from src.account.utils import authenticate_user, create_access_token, get_current_active_user
-from src.account.schemas import Token, UserLogin, UserRegister, UserSuccessCreate, UserPersonArea
+from src.account.auth.dependencies import authenticate_user, create_access_token, get_current_active_user
 from src.responses import RequestValidationError
+from src.account.schemas import (TokenMessage,
+                                 UserLogin,
+                                 UserRegister,
+                                 UserSuccessCreateMessage,
+                                 UserPersonArea,
+                                 UnauthorizedMessage)
+
 from conf.settings import settings
 from conf.database import get_async_session
 
 router = APIRouter()
 
 
-@router.post("/login", response_model=Token)
+@router.post("/login", response_model=TokenMessage)
 async def login_for_access_token(
         form_data: UserLogin,
         session: Annotated[get_async_session, Depends()]
@@ -29,10 +35,11 @@ async def login_for_access_token(
     access_token = await create_access_token(
         data={"sub": str(user.id)}, expires_min=settings.ACCESS_TOKEN_EXPIRE_MINUTES
     )
-    return {"access_token": access_token, "token_type": "Bearer"}
+
+    return TokenMessage(access_token=access_token)
 
 
-@router.post("/register", response_model=UserSuccessCreate)
+@router.post("/register", response_model=UserSuccessCreateMessage)
 async def register_user(
         form_data: UserRegister,
         session: AsyncSession = Depends(get_async_session)
@@ -50,10 +57,12 @@ async def register_user(
     session.add(user)
     await session.commit()
 
-    return {'email': 'Вы успешно зарегистрировались, вам отправлено письмо для подтверждения почты.'}
+    return UserSuccessCreateMessage()
 
 
-@router.get("/users/me", response_model=UserPersonArea)
+@router.get("/users/me",
+            response_model=UserPersonArea,
+            responses={status.HTTP_401_UNAUTHORIZED: dict(model=UnauthorizedMessage)})
 async def read_users_me(
         current_user: Annotated[UserModel, Depends(get_current_active_user)]
 ):

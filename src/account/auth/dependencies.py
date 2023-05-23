@@ -10,10 +10,11 @@ from typing import Annotated
 from conf.database import get_async_session
 from conf.settings import settings
 from src.account.models import UserModel
+from src.account.auth.auth_bearer import JWTBearer
+from src.account.schemas import UnauthorizedMessage
 
-from fastapi.security import OAuth2PasswordBearer
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/login")
+auth_scheme = JWTBearer()
 
 
 async def get_user(session: AsyncSession, **kwargs) -> UserModel:
@@ -39,11 +40,11 @@ async def create_access_token(data: dict, expires_min: int | None = None):
     return encoded_jwt
 
 
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)],
+async def get_current_user(token: Annotated[str, Depends(auth_scheme)],
                            session: AsyncSession = Depends(get_async_session)) -> UserModel | None:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
+        detail=UnauthorizedMessage().detail,
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:

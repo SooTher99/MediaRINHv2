@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional, Union
 from pydantic import AnyHttpUrl, BaseSettings, EmailStr, PostgresDsn, validator
 import os
 
+
 class Settings(BaseSettings):
     """
     FastAPI settings for MediaRINH project.
@@ -108,6 +109,7 @@ class Settings(BaseSettings):
             and values.get("SMTP_PORT")
             and values.get("EMAILS_FROM_EMAIL")
         )
+
     #######################################################################################
     """MEDIA SETTINGS"""
 
@@ -118,7 +120,6 @@ class Settings(BaseSettings):
     @validator("MEDIA_DIR", pre=True)
     def get_media_dir(cls, v: Optional[Path], values: Dict[str, Any]):
         return values.get("BASE_DIR").joinpath(v)
-
 
     class Config:
         case_sensitive = True
