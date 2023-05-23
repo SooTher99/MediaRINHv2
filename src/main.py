@@ -3,11 +3,12 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
+from fastapi.staticfiles import StaticFiles
 
 from starlette.middleware.cors import CORSMiddleware
 
 from conf.settings import settings
-from conf.urls import api_router
+from conf.urls import api_router, template_router
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -27,6 +28,8 @@ app = FastAPI(
 
     },
 )
+
+app.mount("/media", StaticFiles(directory=settings.MEDIA_DIR), name="media")
 
 
 def custom_openapi():
@@ -74,3 +77,4 @@ if settings.BACKEND_CORS_ORIGINS:
     )
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
+app.include_router(template_router)

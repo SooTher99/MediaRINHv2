@@ -1,7 +1,7 @@
+import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 from pydantic import AnyHttpUrl, BaseSettings, EmailStr, PostgresDsn, validator
-import os
 
 
 class Settings(BaseSettings):

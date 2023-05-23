@@ -1,4 +1,8 @@
 from fastapi import HTTPException
+from fastapi.templating import Jinja2Templates
+from conf.settings import settings
+
+TemplateResponse = Jinja2Templates(directory=settings.TEMPLATES_DIR).TemplateResponse
 
 
 class RequestValidationError(HTTPException):
