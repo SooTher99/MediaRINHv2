@@ -70,7 +70,7 @@ class UserPersonArea(BaseModel):
                 'email': 'SomeEmail@gmail.com',
                 'first_name': 'Vladimir',
                 'last_name': 'Abu_bandit',
-                'date_joined': '2023.05.19T22:13',
+                'date_joined': '2023-05-22T12:57:21.298059',
                 'avatar': 'media/avatar/3fdsd1234fsdf123.png',
             }
         }

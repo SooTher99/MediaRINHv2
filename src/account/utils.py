@@ -35,7 +35,7 @@ async def create_access_token(data: dict, expires_min: int | None = None):
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=expires_min)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm='HS256')
+    encoded_jwt = jwt.encode(to_encode, key=settings.SECRET_KEY, algorithm='HS256')
     return encoded_jwt
 
 
@@ -48,12 +48,10 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)],
     )
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
-        user_id: str = payload.get("sub")
+        user_id: int = int(payload.get("sub"))
         if user_id is None:
             raise credentials_exception
-    except JWTError as ex:
-        print(ex)
-        print(type(ex))
+    except JWTError:
         raise credentials_exception
     user = await get_user(session=session, id=user_id)
     if user is None:
